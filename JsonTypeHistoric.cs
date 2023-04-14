@@ -61,3 +61,24 @@ namespace QuickType
         };
     }
 }
+
+
+public class WeatherData
+{
+    public double iss_reception { get; set; }
+    public double wind_speed_avg { get; set; }
+    public double wind_speed_hi { get; set; }
+    public double wind_dir_of_hi { get; set; }
+    public double wind_chill { get; set; }
+    public double thw_index { get; set; }
+    public double bar { get; set; }
+    public double hum_out { get; set; }
+    public double temp_out { get; set; }
+    public double temp_out_lo { get; set; }
+    public double wet_bulb { get; set; }
+    public double temp_out_hi { get; set; }
+    public double wind_run { get; set; }
+    public double dew_point_out { get; set; }
+    public double heat_index_out { get; set; }
+    public double deg_days_cool { get; set; }
+}

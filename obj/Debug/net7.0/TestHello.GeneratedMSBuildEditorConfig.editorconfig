@@ -8,4 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = TestHello
-build_property.ProjectDir = C:\Users\EToledo\source\repos\TestHello\TestHello\
+build_property.ProjectDir = c:\Users\EToledo\source\repos\TestHello\TestHello\

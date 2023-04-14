@@ -8,6 +8,9 @@ using QuickType;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using Newtonsoft.Json;
+using Serilog;
+using Microsoft.Data.SqlClient;
+using System.Data.SqlClient;
 
 /* Este programa consulta la API WeatherLink para obtener las condiciones meteorológicas actuales para una lista de estaciones meteorológicas.
    Primero configura una lista de ID de estación para consultar, así como los parámetros de autenticación de API necesarios (clave y secreto de API).
@@ -23,6 +26,8 @@ class MainClass
         try //,"148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" 
         {
             List<string> stationIds = new List<string> {"148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" };
+            List<string> namesFincas = new List<string> { "NiñoPerdido", "AF_Concepcion", "LaLabranza", "CostaSol", "AF_SanJose", "AK_SanAgustinLasMinas", "AK_Holanda", "TropicultivosIII", "TropicultivosI" };
+            List<string> fincaIds = new List<string> { "10", "2", "12", "8", "20", "11", "19", "6", "4" };
 
             // Parámetros requeridos por la API
             SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
@@ -42,6 +47,9 @@ class MainClass
                 parameters["start-timestamp"] = new DateTimeOffset(yesterday.Year, yesterday.Month, yesterday.Day, 20, 59, 0, TimeSpan.Zero).ToUnixTimeSeconds().ToString();
                 parameters["station-id"] = stationId;
                 parameters["t"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                DateTime horaHumana = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(parameters["t"])).ToLocalTime().DateTime;
+                Console.Out.WriteLine(horaHumana);
+
 
 
 
@@ -117,8 +125,56 @@ class MainClass
                 File.WriteAllText(rutaArchivo, serialized);
 
 
+                
+
+                // ...
+
+                string connectionString = "TuConnectionString"; // Reemplaza TuConnectionString con tu cadena de conexión
+                string query = "INSERT INTO TuTabla (iss_reception, wind_speed_avg, uv_dose, wind_speed_hi, wind_dir_of_hi, wind_chill, solar_rad_hi, deg_days_heat, thw_index, bar, hum_out, uv_index_hi, temp_out, temp_out_lo, wet_bulb, temp_out_hi, solar_rad_avg, bar_alt, arch_int, wind_run, solar_energy, dew_point_out, rain_rate_hi_clicks, wind_dir_of_prevail, et, air_density, rainfall_in, heat_index_out, thsw_index, rainfall_mm, night_cloud_cover, deg_days_cool, rain_rate_hi_in, uv_index_avg, wind_num_samples, emc, rain_rate_hi_mm, rev_type, rainfall_clicks, ts, abs_press) VALUES (@iss_reception, @wind_speed_avg, @uv_dose, @wind_speed_hi, @wind_dir_of_hi, @wind_chill, @solar_rad_hi, @deg_days_heat, @thw_index, @bar, @hum_out, @uv_index_hi, @temp_out, @temp_out_lo, @wet_bulb, @temp_out_hi, @solar_rad_avg, @bar_alt, @arch_int, @wind_run, @solar_energy, @dew_point_out, @rain_rate_hi_clicks, @wind_dir_of_prevail, @et, @air_density, @rainfall_in, @heat_index_out, @thsw_index, @rainfall_mm, @night_cloud_cover, @deg_days_cool, @rain_rate_hi_in, @uv_index_avg, @wind_num_samples, @emc, @rain_rate_hi_mm, @rev_type, @rainfall_clicks, @ts, @abs_press)";
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@iss_reception", 87.0625);
+                        command.Parameters.AddWithValue("@wind_speed_avg", 5.0);
+                        command.Parameters.AddWithValue("@uv_dose", DBNull.Value);
+                        command.Parameters.AddWithValue("@wind_speed_hi", 17.0);
+                        command.Parameters.AddWithValue("@wind_dir_of_hi", 3.0);
+                        command.Parameters.AddWithValue("@wind_chill", 84.8);
+                        command.Parameters.AddWithValue("@solar_rad_hi", DBNull.Value);
+                        command.Parameters.AddWithValue("@deg_days_heat", 0.0);
+                        command.Parameters.AddWithValue("@thw_index", 84.060005);
+                        command.Parameters.AddWithValue("@bar", 30.033);
+                        command.Parameters.AddWithValue("@hum_out", 40.0);
+                        command.Parameters.AddWithValue("@uv_index_hi", DBNull.Value);
+                        command.Parameters.AddWithValue("@temp_out", 84.8);
+                        command.Parameters.AddWithValue("@temp_out_lo", 83.8);
+                        command.Parameters.AddWithValue("@wet_bulb", 63.085876);
+                        command.Parameters.AddWithValue("@temp_out_hi", 85.6);
+                        command.Parameters.AddWithValue("@solar_rad_avg", DBNull.Value);
+                        command.Parameters.AddWithValue("@bar_alt", 30.033);
+                        command.Parameters.AddWithValue("@arch_int", 3600.0);
+                        command.Parameters.AddWithValue("@wind_run", 5.0);
+                        command.Parameters.AddWithValue("@solar_energy", DBNull.Value);
+                        command.Parameters.AddWithValue("@dew_point_out", 57.79513);
+                        command.Parameters.AddWithValue("@rain_rate_hi_clicks", 0
+                
+
+
+
+
+                         string json =  jsonString;
+                        WeatherData data = JsonConvert.DeserializeObject<WeatherData>(json);
+                        double reception = data.iss_reception;
+                        double windSpeed = data.wind_speed_avg;
+                        double maxWindSpeed = data.wind_speed_hi;
+                // y así sucesivamente
+
+
 
             }
+            como inserto los datos que obtuve del Json a la base de datos
 
             // Captura cualquier excepción
         }
