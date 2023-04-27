@@ -11,6 +11,9 @@ using Newtonsoft.Json;
 using Serilog;
 using Microsoft.Data.SqlClient;
 using System.Data.SqlClient;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
+
 
 /* Este programa consulta la API WeatherLink para obtener las condiciones meteorológicas actuales para una lista de estaciones meteorológicas.
    Primero configura una lista de ID de estación para consultar, así como los parámetros de autenticación de API necesarios (clave y secreto de API).
@@ -23,9 +26,9 @@ class MainClass
 {
     public static async Task Main(string[] args) 
     {
-        try //,"148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" 
+        try //"148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" 
         {
-            List<string> stationIds = new List<string> {"148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" };
+            List<string> stationIds = new List<string> { "148395", "148397", "148398", "148400", "148404", "148406", "148412", "148417" };
             List<string> namesFincas = new List<string> { "NiñoPerdido", "AF_Concepcion", "LaLabranza", "CostaSol", "AF_SanJose", "AK_SanAgustinLasMinas", "AK_Holanda", "TropicultivosIII", "TropicultivosI" };
             List<string> fincaIds = new List<string> { "10", "2", "12", "8", "20", "11", "19", "6", "4" };
 
@@ -47,16 +50,17 @@ class MainClass
                 parameters["start-timestamp"] = new DateTimeOffset(yesterday.Year, yesterday.Month, yesterday.Day, 20, 59, 0, TimeSpan.Zero).ToUnixTimeSeconds().ToString();
                 parameters["station-id"] = stationId;
                 parameters["t"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                DateTime horaHumana = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(parameters["t"])).ToLocalTime().DateTime;
-                Console.Out.WriteLine(horaHumana);
+                
 
 
 
-
+                /*
                 foreach (KeyValuePair<string, string> entry in parameters)
                 {
                     Console.Out.WriteLine("Parameter name: \"" + entry.Key + "\" is \"" + entry.Value + "\"");
                 }
+                */
+
 
                 string apiSecret = parameters["api-secret"];
                 parameters.Remove("api-secret");
@@ -70,7 +74,7 @@ class MainClass
                 }
                 string data = dataStringBuilder.ToString();
 
-                Console.Out.WriteLine("Data string to hash is: \"" + data + "\"");
+              //  Console.Out.WriteLine("Data string to hash is: \"" + data + "\"");
 
                 // Encriptar la cadena de datos con el API secret usando HMACSHA256
                 string apiSignatureString = null;
@@ -81,20 +85,21 @@ class MainClass
                 }
 
                 // Imprimir la firma de la API
-                Console.Out.WriteLine("API Signature is: \"" + apiSignatureString + "\"");
+                //Console.Out.WriteLine("API Signature is: \"" + apiSignatureString + "\"");
 
                 // Agregar el API secret nuevamente a los parámetros
                 parameters.Add("api-secret", "idwzxqlu9ddiw0fc9emxhbzvtg8ogmur");
 
                 //https://api.weatherlink.com/v2/historic/148400?api-key=j2ribfc24fui0p8odstwzuogldjf2r7v&t=1678732610&start-timestamp=1678568400&end-timestamp=1678654740&api-signature=5adc4b0f1e0a56d0eb5d1bbf785b530a5ce99fe69f55f2418eb1fb44ed449cdd
 
-
+                /*
                 Console.Out.WriteLine("v2 API URL: https://api.weatherlink.com/v2/historic/" + parameters["station-id"] +
                   "?api-key=" + parameters["api-key"] +
                   "&t=" + parameters["t"] +
                   "&start-timestamp=" + parameters["start-timestamp"] +
                   "&end-timestamp=" + parameters["end-timestamp"] +
                   "&api-signature=" + apiSignatureString);
+                */
 
                 // Construir la URL completa usando UriBuilder
                 var builder = new UriBuilder("https://api.weatherlink.com/v2/historic/" + parameters["station-id"])
@@ -112,11 +117,10 @@ class MainClass
                 // Lee el contenido de la respuesta como una cadena (JSON)
                 var jsonString = await response.Content.ReadAsStringAsync();
 
-                // Imprime los datos JSON para la estación meteorológica a                                                                                                                                                  ctual en la consola
-                Console.WriteLine($"JSON for station {stationId}:");
+                //serializado del json
                 var welcome = Welcome.FromJson(jsonString);
                 var serialized = JsonConvert.SerializeObject(welcome, Formatting.Indented);
-                Console.WriteLine(serialized);
+                //Console.WriteLine(serialized);
 
                 // Definimos la ruta y nombre del archivo
                 var rutaArchivo = @"C:\Users\EToledo\source\repos\TestHello\TestHello\dataweather.json";
@@ -124,58 +128,101 @@ class MainClass
                 // Escribimos el archivo JSON en la ruta especificada
                 File.WriteAllText(rutaArchivo, serialized);
 
+                string json = jsonString;
+                RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(json);
 
-                
+                int index = 0;
 
-                // ...
-
-                string connectionString = "TuConnectionString"; // Reemplaza TuConnectionString con tu cadena de conexión
-                string query = "INSERT INTO TuTabla (iss_reception, wind_speed_avg, uv_dose, wind_speed_hi, wind_dir_of_hi, wind_chill, solar_rad_hi, deg_days_heat, thw_index, bar, hum_out, uv_index_hi, temp_out, temp_out_lo, wet_bulb, temp_out_hi, solar_rad_avg, bar_alt, arch_int, wind_run, solar_energy, dew_point_out, rain_rate_hi_clicks, wind_dir_of_prevail, et, air_density, rainfall_in, heat_index_out, thsw_index, rainfall_mm, night_cloud_cover, deg_days_cool, rain_rate_hi_in, uv_index_avg, wind_num_samples, emc, rain_rate_hi_mm, rev_type, rainfall_clicks, ts, abs_press) VALUES (@iss_reception, @wind_speed_avg, @uv_dose, @wind_speed_hi, @wind_dir_of_hi, @wind_chill, @solar_rad_hi, @deg_days_heat, @thw_index, @bar, @hum_out, @uv_index_hi, @temp_out, @temp_out_lo, @wet_bulb, @temp_out_hi, @solar_rad_avg, @bar_alt, @arch_int, @wind_run, @solar_energy, @dew_point_out, @rain_rate_hi_clicks, @wind_dir_of_prevail, @et, @air_density, @rainfall_in, @heat_index_out, @thsw_index, @rainfall_mm, @night_cloud_cover, @deg_days_cool, @rain_rate_hi_in, @uv_index_avg, @wind_num_samples, @emc, @rain_rate_hi_mm, @rev_type, @rainfall_clicks, @ts, @abs_press)";
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                while (true)
                 {
-                    connection.Open();
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    // Verify if the current sensor has no data
+                    if (rootObject.sensors[index].data.Count == 0)
                     {
-                        command.Parameters.AddWithValue("@iss_reception", 87.0625);
-                        command.Parameters.AddWithValue("@wind_speed_avg", 5.0);
-                        command.Parameters.AddWithValue("@uv_dose", DBNull.Value);
-                        command.Parameters.AddWithValue("@wind_speed_hi", 17.0);
-                        command.Parameters.AddWithValue("@wind_dir_of_hi", 3.0);
-                        command.Parameters.AddWithValue("@wind_chill", 84.8);
-                        command.Parameters.AddWithValue("@solar_rad_hi", DBNull.Value);
-                        command.Parameters.AddWithValue("@deg_days_heat", 0.0);
-                        command.Parameters.AddWithValue("@thw_index", 84.060005);
-                        command.Parameters.AddWithValue("@bar", 30.033);
-                        command.Parameters.AddWithValue("@hum_out", 40.0);
-                        command.Parameters.AddWithValue("@uv_index_hi", DBNull.Value);
-                        command.Parameters.AddWithValue("@temp_out", 84.8);
-                        command.Parameters.AddWithValue("@temp_out_lo", 83.8);
-                        command.Parameters.AddWithValue("@wet_bulb", 63.085876);
-                        command.Parameters.AddWithValue("@temp_out_hi", 85.6);
-                        command.Parameters.AddWithValue("@solar_rad_avg", DBNull.Value);
-                        command.Parameters.AddWithValue("@bar_alt", 30.033);
-                        command.Parameters.AddWithValue("@arch_int", 3600.0);
-                        command.Parameters.AddWithValue("@wind_run", 5.0);
-                        command.Parameters.AddWithValue("@solar_energy", DBNull.Value);
-                        command.Parameters.AddWithValue("@dew_point_out", 57.79513);
-                        command.Parameters.AddWithValue("@rain_rate_hi_clicks", 0
+                        index = (index + 1) % rootObject.sensors.Count;
+                        continue;
+                    }
+
+                    Sensor currentSensor = rootObject.sensors[index];
+
+                    // Validar si el sensor tiene 24 valores en la cuenta
+                    if (currentSensor.data.Count != 24)
+                    {
+                        index = (index + 1) % rootObject.sensors.Count;
+                        continue;
+                    }
+
+                    // Validar si todos los valores de SensorData en el sensor son 0
+                    bool allZero = true;
+                    foreach (SensorData sensorData in currentSensor.data)
+                    {
+                        if (sensorData.iss_reception != 0)
+                        {
+                            allZero = false;
+                            break;
+                        }
+                    }
+
+                    if (allZero)
+                    {
+                        index = (index + 1) % rootObject.sensors.Count;
+                        continue;
+                    }
+
+                    Console.WriteLine(stationId);
+
+                    foreach (SensorData sensorData in currentSensor.data)
+                    {
+                        var timest = (long)sensorData.ts;
+                        Console.Out.WriteLine("DATOS DE LA ESTACIÓN: " + stationId);
+                        Console.WriteLine("Fecha y Hora: " + DateTimeOffset.FromUnixTimeSeconds(timest).ToLocalTime().ToString());
+                        Console.WriteLine("iss_reception: " + sensorData.iss_reception.ToString());
+                        Console.WriteLine("wind_speed_avg: " + sensorData.wind_speed_avg.ToString());
+                       // Console.WriteLine("wind_speed_hi: " + sensorData.wind_speed_hi.ToString());
+                        Console.WriteLine("wind_dir_of_hi: " + sensorData.wind_dir_of_hi.ToString());
+                        Console.WriteLine("wind_chill: " + sensorData.wind_chill.ToString());
+                        Console.WriteLine("deg_days_heat: " + sensorData.deg_days_heat.ToString());
+                        Console.WriteLine("thw_index: " + sensorData.thw_index.ToString());
+                        Console.WriteLine("bar: " + sensorData.bar.ToString());
+                        Console.WriteLine("hum_out: " + sensorData.hum_out.ToString());
+                        Console.WriteLine("temp_out: " + sensorData.temp_out.ToString());
+                        Console.WriteLine("temp_out_lo: " + sensorData.temp_out_lo.ToString());
+                        Console.WriteLine("wet_bulb: " + sensorData.wet_bulb.ToString());
+                        Console.WriteLine("temp_out_hi: " + sensorData.temp_out_hi.ToString());
+                        Console.WriteLine("bar_alt: " + sensorData.bar_alt.ToString());
+                        Console.WriteLine("arch_int: " + sensorData.arch_int.ToString());
+                        Console.WriteLine("wind_run: " + sensorData.wind_run.ToString());
+                        Console.WriteLine("dew_point_out: " + sensorData.dew_point_out.ToString());
+                        Console.WriteLine("rain_rate_hi_clicks: " + sensorData.rain_rate_hi_clicks.ToString());
+                       // Console.WriteLine("wind_dir_of_prevail: " + sensorData.wind_dir_of_prevail.ToString());
+                        Console.WriteLine("et: " + sensorData.et.ToString());
+                        Console.WriteLine("air_density: " + sensorData.air_density.ToString());
+                        Console.WriteLine("rainfall_in: " + sensorData.rainfall_in.ToString());
+                        Console.WriteLine("heat_index_out: " + sensorData.heat_index_out.ToString());
+                        Console.WriteLine("rainfall_mm: " + sensorData.rainfall_mm.ToString());
+                        Console.WriteLine("deg_days_cool: " + sensorData.deg_days_cool.ToString());
+                        Console.WriteLine("rain_rate_hi_in: " + sensorData.rain_rate_hi_in.ToString());
+                        Console.WriteLine("wind_num_samples: " + sensorData.wind_num_samples.ToString());
+                        Console.WriteLine("emc: " + sensorData.emc.ToString());
+                        Console.WriteLine("rain_rate_hi_mm: " + sensorData.rain_rate_hi_mm.ToString());
+                        Console.WriteLine("rev_type: " + sensorData.rev_type.ToString());
+                        Console.WriteLine("rainfall_clicks: " + sensorData.rainfall_clicks.ToString());
+                        Console.WriteLine("time_stamp: " + sensorData.ts.ToString());
+                        Console.WriteLine("abs_press: " + sensorData.abs_press.ToString());
+                        Console.WriteLine("\r");
+                        
+                    
+
+
+                    }
+                    break; // aquí es donde se debe romper el ciclo while
+
+                    index++;
+
+                }
                 
-
-
-
-
-                         string json =  jsonString;
-                        WeatherData data = JsonConvert.DeserializeObject<WeatherData>(json);
-                        double reception = data.iss_reception;
-                        double windSpeed = data.wind_speed_avg;
-                        double maxWindSpeed = data.wind_speed_hi;
-                // y así sucesivamente
-
 
 
             }
-            como inserto los datos que obtuve del Json a la base de datos
-
             // Captura cualquier excepción
         }
         catch (Exception ex)
