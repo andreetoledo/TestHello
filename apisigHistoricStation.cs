@@ -28,7 +28,7 @@ class MainClass
     {
         try //"148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" 
         {
-            List<string> stationIds = new List<string> { "148395", "148397", "148398", "148400", "148404", "148406", "148412", "148417" };
+            List<string> stationIds = new List<string> { "148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" };
             List<string> namesFincas = new List<string> { "NiñoPerdido", "AF_Concepcion", "LaLabranza", "CostaSol", "AF_SanJose", "AK_SanAgustinLasMinas", "AK_Holanda", "TropicultivosIII", "TropicultivosI" };
             List<string> fincaIds = new List<string> { "10", "2", "12", "8", "20", "11", "19", "6", "4" };
 
@@ -177,7 +177,7 @@ class MainClass
                         Console.WriteLine("Fecha y Hora: " + DateTimeOffset.FromUnixTimeSeconds(timest).ToLocalTime().ToString());
                         Console.WriteLine("iss_reception: " + sensorData.iss_reception.ToString());
                         Console.WriteLine("wind_speed_avg: " + sensorData.wind_speed_avg.ToString());
-                       // Console.WriteLine("wind_speed_hi: " + sensorData.wind_speed_hi.ToString());
+                        Console.WriteLine("wind_speed_hi: " + sensorData.wind_speed_hi.ToString());
                         Console.WriteLine("wind_dir_of_hi: " + sensorData.wind_dir_of_hi.ToString());
                         Console.WriteLine("wind_chill: " + sensorData.wind_chill.ToString());
                         Console.WriteLine("deg_days_heat: " + sensorData.deg_days_heat.ToString());
@@ -193,7 +193,7 @@ class MainClass
                         Console.WriteLine("wind_run: " + sensorData.wind_run.ToString());
                         Console.WriteLine("dew_point_out: " + sensorData.dew_point_out.ToString());
                         Console.WriteLine("rain_rate_hi_clicks: " + sensorData.rain_rate_hi_clicks.ToString());
-                       // Console.WriteLine("wind_dir_of_prevail: " + sensorData.wind_dir_of_prevail.ToString());
+                        Console.WriteLine("wind_dir_of_prevail: " + sensorData.wind_dir_of_prevail.ToString());
                         Console.WriteLine("et: " + sensorData.et.ToString());
                         Console.WriteLine("air_density: " + sensorData.air_density.ToString());
                         Console.WriteLine("rainfall_in: " + sensorData.rainfall_in.ToString());

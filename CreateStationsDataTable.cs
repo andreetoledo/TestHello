@@ -19,7 +19,7 @@ namespace CreateStationsDataTable
         static void Main(string[] args)
         {
             // Connection string for SQL Server
-            string connectionString = "Data Source=<server name>;Initial Catalog=<database name>;Integrated Security=True";
+            string connectionString = "Data Source=192.168.1.38;Initial Catalog=<database name>;Integrated Security=True";
 
             // SQL query to create StationsData table
             string createTableQuery = @"CREATE TABLE StationsData (
