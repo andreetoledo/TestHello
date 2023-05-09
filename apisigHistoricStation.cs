@@ -13,6 +13,12 @@ using Microsoft.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
+
+
+
+
+
 
 
 /* Este programa consulta la API WeatherLink para obtener las condiciones meteorológicas actuales para una lista de estaciones meteorológicas.
@@ -32,7 +38,7 @@ class MainClass
             List<string> namesFincas = new List<string> { "NiñoPerdido", "AF_Concepcion", "LaLabranza", "CostaSol", "AF_SanJose", "AK_SanAgustinLasMinas", "AK_Holanda", "TropicultivosIII", "TropicultivosI" };
             List<string> fincaIds = new List<string> { "10", "2", "12", "8", "20", "11", "19", "6", "4" };
 
-            // Parámetros requeridos por la API
+            // Parámetros requeridos por la API, API KEY y API SECRET
             SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
             parameters.Add("api-key", "j2ribfc24fui0p8odstwzuogldjf2r7v");
             parameters.Add("api-secret", "idwzxqlu9ddiw0fc9emxhbzvtg8ogmur");
@@ -44,6 +50,7 @@ class MainClass
                 var now = DateTimeOffset.UtcNow;
                 var yesterday = now.AddDays(-2).Date;
                 var today = now.AddDays(-1).Date;
+
 
                 // Agregar el momento inicial y final de la consulta el ID de la estación actual a los parámetros
                 parameters["end-timestamp"] = new DateTimeOffset(today.Year, today.Month, today.Day, 20, 59, 0, TimeSpan.Zero).ToUnixTimeSeconds().ToString();
@@ -144,6 +151,24 @@ class MainClass
 
                     Sensor currentSensor = rootObject.sensors[index];
 
+                    // Validar si todos los valores de SensorData en el sensor son NULL
+                    bool allNull = true;
+                    foreach (SensorData sensorData in currentSensor.data)
+                    {
+                        if (sensorData.iss_reception != null)
+                        {
+                            allNull = false;
+                            break;
+                        }
+                    }
+
+                    if (allNull)
+                    {
+                        index = (index + 1) % rootObject.sensors.Count;
+                        continue;
+                    }
+
+
                     // Validar si el sensor tiene 24 valores en la cuenta
                     if (currentSensor.data.Count != 24)
                     {
@@ -168,55 +193,74 @@ class MainClass
                         continue;
                     }
 
-                    Console.WriteLine(stationId);
 
-                    foreach (SensorData sensorData in currentSensor.data)
+                    var Connectbuilder = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json");
+
+                    var configuration = Connectbuilder.Build();
+
+                    var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
+                    optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+
+
+                    using (var context = new DataContext(optionsBuilder.Options))
                     {
-                        var timest = (long)sensorData.ts;
-                        Console.Out.WriteLine("DATOS DE LA ESTACIÓN: " + stationId);
-                        Console.WriteLine("Fecha y Hora: " + DateTimeOffset.FromUnixTimeSeconds(timest).ToLocalTime().ToString());
-                        Console.WriteLine("iss_reception: " + sensorData.iss_reception.ToString());
-                        Console.WriteLine("wind_speed_avg: " + sensorData.wind_speed_avg.ToString());
-                        Console.WriteLine("wind_speed_hi: " + sensorData.wind_speed_hi.ToString());
-                        Console.WriteLine("wind_dir_of_hi: " + sensorData.wind_dir_of_hi.ToString());
-                        Console.WriteLine("wind_chill: " + sensorData.wind_chill.ToString());
-                        Console.WriteLine("deg_days_heat: " + sensorData.deg_days_heat.ToString());
-                        Console.WriteLine("thw_index: " + sensorData.thw_index.ToString());
-                        Console.WriteLine("bar: " + sensorData.bar.ToString());
-                        Console.WriteLine("hum_out: " + sensorData.hum_out.ToString());
-                        Console.WriteLine("temp_out: " + sensorData.temp_out.ToString());
-                        Console.WriteLine("temp_out_lo: " + sensorData.temp_out_lo.ToString());
-                        Console.WriteLine("wet_bulb: " + sensorData.wet_bulb.ToString());
-                        Console.WriteLine("temp_out_hi: " + sensorData.temp_out_hi.ToString());
-                        Console.WriteLine("bar_alt: " + sensorData.bar_alt.ToString());
-                        Console.WriteLine("arch_int: " + sensorData.arch_int.ToString());
-                        Console.WriteLine("wind_run: " + sensorData.wind_run.ToString());
-                        Console.WriteLine("dew_point_out: " + sensorData.dew_point_out.ToString());
-                        Console.WriteLine("rain_rate_hi_clicks: " + sensorData.rain_rate_hi_clicks.ToString());
-                        Console.WriteLine("wind_dir_of_prevail: " + sensorData.wind_dir_of_prevail.ToString());
-                        Console.WriteLine("et: " + sensorData.et.ToString());
-                        Console.WriteLine("air_density: " + sensorData.air_density.ToString());
-                        Console.WriteLine("rainfall_in: " + sensorData.rainfall_in.ToString());
-                        Console.WriteLine("heat_index_out: " + sensorData.heat_index_out.ToString());
-                        Console.WriteLine("rainfall_mm: " + sensorData.rainfall_mm.ToString());
-                        Console.WriteLine("deg_days_cool: " + sensorData.deg_days_cool.ToString());
-                        Console.WriteLine("rain_rate_hi_in: " + sensorData.rain_rate_hi_in.ToString());
-                        Console.WriteLine("wind_num_samples: " + sensorData.wind_num_samples.ToString());
-                        Console.WriteLine("emc: " + sensorData.emc.ToString());
-                        Console.WriteLine("rain_rate_hi_mm: " + sensorData.rain_rate_hi_mm.ToString());
-                        Console.WriteLine("rev_type: " + sensorData.rev_type.ToString());
-                        Console.WriteLine("rainfall_clicks: " + sensorData.rainfall_clicks.ToString());
-                        Console.WriteLine("time_stamp: " + sensorData.ts.ToString());
-                        Console.WriteLine("abs_press: " + sensorData.abs_press.ToString());
-                        Console.WriteLine("\r");
                         
-                    
+           
+
+                        foreach (SensorData sensorData in currentSensor.data)
+                        {
+
+                            Console.Out.WriteLine("DATOS DE LA ESTACIÓN: " + stationId);
 
 
+                            var stationData = new PROD_StationsData  
+                            {
+                                IDFincaStationData = int.Parse(stationId),
+                                FechaHora = DateTimeOffset.FromUnixTimeSeconds((long)sensorData.ts).ToLocalTime(),
+                                IssReception = Convert.ToDecimal(sensorData.iss_reception),
+                                WindSpeedAvg = Convert.ToDecimal(sensorData.wind_speed_avg),
+                                WindSpeedHi = Convert.ToDecimal(sensorData.wind_speed_hi),
+                                WindDirOfHi = Convert.ToDecimal(sensorData.wind_dir_of_hi),
+                                WindChill = Convert.ToDecimal(sensorData.wind_chill),
+                                DegDaysHeat = Convert.ToDecimal(sensorData.deg_days_heat),
+                                ThwIndex = Convert.ToDecimal(sensorData.thw_index),
+                                Bar = Convert.ToDecimal(sensorData.bar),
+                                HumOut = Convert.ToDecimal(sensorData.hum_out),
+                                TempOut = Convert.ToDecimal(sensorData.temp_out),
+                                TempOutLo = Convert.ToDecimal(sensorData.temp_out_lo),
+                                WetBulb = Convert.ToDecimal(sensorData.wet_bulb),
+                                TempOutHi = Convert.ToDecimal(sensorData.temp_out_hi),
+                                BarAlt = Convert.ToDecimal(sensorData.bar_alt),
+                                ArchInt = Convert.ToDecimal(sensorData.arch_int),
+                                WindRun = Convert.ToDecimal(sensorData.wind_run),
+                                DewPointOut = Convert.ToDecimal(sensorData.dew_point_out),
+                                RainRateHiClicks = Convert.ToDecimal(sensorData.rain_rate_hi_clicks),
+                                WindDirOfPrevail = Convert.ToDecimal(sensorData.wind_dir_of_prevail),
+                                Et = Convert.ToDecimal(sensorData.et),
+                                AirDensity = Convert.ToDecimal(sensorData.air_density),
+                                RainfallIn = Convert.ToDecimal(sensorData.rainfall_in),
+                                HeatIndexOut = Convert.ToDecimal(sensorData.heat_index_out),
+                                RainfallMm = Convert.ToDecimal(sensorData.rainfall_mm),
+                                DegDaysCool = Convert.ToDecimal(sensorData.deg_days_cool),
+                                RainRateHiIn = Convert.ToDecimal(sensorData.rain_rate_hi_in),
+                                WindNumSamples = Convert.ToDecimal(sensorData.wind_num_samples),
+                                Emc = Convert.ToDecimal(sensorData.emc),
+                                RevType = Convert.ToDecimal(sensorData.rev_type),
+                                RainfallClicks = Convert.ToDecimal(sensorData.rainfall_clicks),
+                                AbsPress = Convert.ToDecimal(sensorData.abs_press),
+                                                            
+                            };
+                            context.PROD_StationsData.Add(stationData);
+                            context.SaveChanges();
+                           
+                        }
                     }
                     break; // aquí es donde se debe romper el ciclo while
 
                     index++;
+
 
                 }
                 
