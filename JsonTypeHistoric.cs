@@ -176,3 +176,5 @@ public class DataContext : DbContext
         modelBuilder.Entity<PROD_StationsData>().HasKey(s => s.IDLecture);
     }
 }
+
+

@@ -30,6 +30,108 @@ using Microsoft.Extensions.Configuration;
 
 class MainClass
 {
+    public bool IsSensorValid(Sensor sensor)
+    {
+        // Verify if the current sensor has no data
+        if (sensor.data.Count == 0)
+        {
+            return false;
+        }
+
+        // Validar si todos los valores de SensorData en el sensor son NULL
+        bool allNull = true;
+        foreach (SensorData sensorData in sensor.data)
+        {
+            if (sensorData.iss_reception != null)
+            {
+                allNull = false;
+                break;
+            }
+        }
+
+        if (allNull)
+        {
+            return false;
+        }
+
+        // Validar si el sensor tiene 24 valores en la cuenta
+        if (sensor.data.Count != 24)
+        {
+            return false;
+        }
+
+        // Validar si todos los valores de SensorData en el sensor son 0
+        bool allZero = true;
+        foreach (SensorData sensorData in sensor.data)
+        {
+            if (sensorData.iss_reception != 0)
+            {
+                allZero = false;
+                break;
+            }
+        }
+
+        if (allZero)
+        {
+            return false;
+        }
+
+        return true;
+        /* To call this function from any part of the code, simply pass a Sensor object
+        / create an instance of MainClass
+        //MainClass mainClass = new MainClass();
+        / call IsSensorValid() function and pass a Sensor object
+        //bool isValid = mainClass.IsSensorValid(rootObject.sensors[index]);
+        */
+
+    }
+
+    public PROD_StationsData SetStationData(SensorData sensorData, string stationId)
+    {
+        var stationData = new PROD_StationsData  
+        {
+            IDFincaStationData = int.Parse(stationId),
+            FechaHora = DateTimeOffset.FromUnixTimeSeconds((long)sensorData.ts).ToLocalTime(),
+            IssReception = Convert.ToDecimal(sensorData.iss_reception),
+            WindSpeedAvg = Convert.ToDecimal(sensorData.wind_speed_avg),
+            WindSpeedHi = Convert.ToDecimal(sensorData.wind_speed_hi),
+            WindDirOfHi = Convert.ToDecimal(sensorData.wind_dir_of_hi),
+            WindChill = Convert.ToDecimal(sensorData.wind_chill),
+            DegDaysHeat = Convert.ToDecimal(sensorData.deg_days_heat),
+            ThwIndex = Convert.ToDecimal(sensorData.thw_index),
+            Bar = Convert.ToDecimal(sensorData.bar),
+            HumOut = Convert.ToDecimal(sensorData.hum_out),
+            TempOut = Convert.ToDecimal(sensorData.temp_out),
+            TempOutLo = Convert.ToDecimal(sensorData.temp_out_lo),
+            WetBulb = Convert.ToDecimal(sensorData.wet_bulb),
+            TempOutHi = Convert.ToDecimal(sensorData.temp_out_hi),
+            BarAlt = Convert.ToDecimal(sensorData.bar_alt),
+            ArchInt = Convert.ToDecimal(sensorData.arch_int),
+            WindRun = Convert.ToDecimal(sensorData.wind_run),
+            DewPointOut = Convert.ToDecimal(sensorData.dew_point_out),
+            RainRateHiClicks = Convert.ToDecimal(sensorData.rain_rate_hi_clicks),
+            WindDirOfPrevail = Convert.ToDecimal(sensorData.wind_dir_of_prevail),
+            Et = Convert.ToDecimal(sensorData.et),
+            AirDensity = Convert.ToDecimal(sensorData.air_density),
+            RainfallIn = Convert.ToDecimal(sensorData.rainfall_in),
+            HeatIndexOut = Convert.ToDecimal(sensorData.heat_index_out),
+            RainfallMm = Convert.ToDecimal(sensorData.rainfall_mm),
+            DegDaysCool = Convert.ToDecimal(sensorData.deg_days_cool),
+            RainRateHiIn = Convert.ToDecimal(sensorData.rain_rate_hi_in),
+            WindNumSamples = Convert.ToDecimal(sensorData.wind_num_samples),
+            Emc = Convert.ToDecimal(sensorData.emc),
+            RevType = Convert.ToDecimal(sensorData.rev_type),
+            RainfallClicks = Convert.ToDecimal(sensorData.rainfall_clicks),
+            AbsPress = Convert.ToDecimal(sensorData.abs_press),
+        };
+        
+        return stationData;
+        // Llamada a la función
+        //PROD_StationsData stationData = SetStationData(sensorData, stationId); 
+    }
+
+
+    
     public static async Task Main(string[] args) 
     {
         try //"148395", "148397", "148398", "148400", "148404", "148406", "148408", "148412", "148417" 
@@ -50,6 +152,9 @@ class MainClass
                 var now = DateTimeOffset.UtcNow;
                 var yesterday = now.AddDays(-2).Date;
                 var today = now.AddDays(-1).Date;
+                //var yesterday = new DateTime(2023, 1, 1); 
+                //var today = new DateTime(2023, 1, 2); 
+
 
 
                 // Agregar el momento inicial y final de la consulta el ID de la estación actual a los parámetros
@@ -99,14 +204,14 @@ class MainClass
 
                 //https://api.weatherlink.com/v2/historic/148400?api-key=j2ribfc24fui0p8odstwzuogldjf2r7v&t=1678732610&start-timestamp=1678568400&end-timestamp=1678654740&api-signature=5adc4b0f1e0a56d0eb5d1bbf785b530a5ce99fe69f55f2418eb1fb44ed449cdd
 
-                /*
+                
                 Console.Out.WriteLine("v2 API URL: https://api.weatherlink.com/v2/historic/" + parameters["station-id"] +
                   "?api-key=" + parameters["api-key"] +
                   "&t=" + parameters["t"] +
                   "&start-timestamp=" + parameters["start-timestamp"] +
                   "&end-timestamp=" + parameters["end-timestamp"] +
                   "&api-signature=" + apiSignatureString);
-                */
+                
 
                 // Construir la URL completa usando UriBuilder
                 var builder = new UriBuilder("https://api.weatherlink.com/v2/historic/" + parameters["station-id"])
@@ -137,23 +242,31 @@ class MainClass
 
                 string json = jsonString;
                 RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(json);
-
+                
+                Sensor currentSensor = null;
                 int index = 0;
 
-                while (true)
+                while (currentSensor == null && index < rootObject.sensors.Count)
                 {
+                    // Verify if all sensors have no data or data is nulL
+                    if (rootObject.sensors.All(sensor => sensor.data.Count == 0 || sensor.data.All(data => data == null))) 
+                    { 
+                        continue; 
+                    }
+
                     // Verify if the current sensor has no data
                     if (rootObject.sensors[index].data.Count == 0)
                     {
                         index = (index + 1) % rootObject.sensors.Count;
+                        index++;
                         continue;
                     }
 
-                    Sensor currentSensor = rootObject.sensors[index];
+                    Sensor sensor = rootObject.sensors[index];
 
                     // Validar si todos los valores de SensorData en el sensor son NULL
                     bool allNull = true;
-                    foreach (SensorData sensorData in currentSensor.data)
+                    foreach (SensorData sensorData in sensor.data)
                     {
                         if (sensorData.iss_reception != null)
                         {
@@ -165,20 +278,21 @@ class MainClass
                     if (allNull)
                     {
                         index = (index + 1) % rootObject.sensors.Count;
+                        index++;
                         continue;
                     }
 
-
                     // Validar si el sensor tiene 24 valores en la cuenta
-                    if (currentSensor.data.Count != 24)
+                    if (sensor.data.Count != 24)
                     {
                         index = (index + 1) % rootObject.sensors.Count;
+                        index++;
                         continue;
                     }
 
                     // Validar si todos los valores de SensorData en el sensor son 0
                     bool allZero = true;
-                    foreach (SensorData sensorData in currentSensor.data)
+                    foreach (SensorData sensorData in sensor.data)
                     {
                         if (sensorData.iss_reception != 0)
                         {
@@ -190,9 +304,12 @@ class MainClass
                     if (allZero)
                     {
                         index = (index + 1) % rootObject.sensors.Count;
+                        index++;
                         continue;
                     }
 
+                    // If the sensor passes all conditions, assign it to currentSensor
+                    currentSensor = sensor;
 
                     var Connectbuilder = new ConfigurationBuilder()
                         .SetBasePath(Directory.GetCurrentDirectory())
@@ -213,57 +330,18 @@ class MainClass
                         {
 
                             Console.Out.WriteLine("DATOS DE LA ESTACIÓN: " + stationId);
-
-
-                            var stationData = new PROD_StationsData  
-                            {
-                                IDFincaStationData = int.Parse(stationId),
-                                FechaHora = DateTimeOffset.FromUnixTimeSeconds((long)sensorData.ts).ToLocalTime(),
-                                IssReception = Convert.ToDecimal(sensorData.iss_reception),
-                                WindSpeedAvg = Convert.ToDecimal(sensorData.wind_speed_avg),
-                                WindSpeedHi = Convert.ToDecimal(sensorData.wind_speed_hi),
-                                WindDirOfHi = Convert.ToDecimal(sensorData.wind_dir_of_hi),
-                                WindChill = Convert.ToDecimal(sensorData.wind_chill),
-                                DegDaysHeat = Convert.ToDecimal(sensorData.deg_days_heat),
-                                ThwIndex = Convert.ToDecimal(sensorData.thw_index),
-                                Bar = Convert.ToDecimal(sensorData.bar),
-                                HumOut = Convert.ToDecimal(sensorData.hum_out),
-                                TempOut = Convert.ToDecimal(sensorData.temp_out),
-                                TempOutLo = Convert.ToDecimal(sensorData.temp_out_lo),
-                                WetBulb = Convert.ToDecimal(sensorData.wet_bulb),
-                                TempOutHi = Convert.ToDecimal(sensorData.temp_out_hi),
-                                BarAlt = Convert.ToDecimal(sensorData.bar_alt),
-                                ArchInt = Convert.ToDecimal(sensorData.arch_int),
-                                WindRun = Convert.ToDecimal(sensorData.wind_run),
-                                DewPointOut = Convert.ToDecimal(sensorData.dew_point_out),
-                                RainRateHiClicks = Convert.ToDecimal(sensorData.rain_rate_hi_clicks),
-                                WindDirOfPrevail = Convert.ToDecimal(sensorData.wind_dir_of_prevail),
-                                Et = Convert.ToDecimal(sensorData.et),
-                                AirDensity = Convert.ToDecimal(sensorData.air_density),
-                                RainfallIn = Convert.ToDecimal(sensorData.rainfall_in),
-                                HeatIndexOut = Convert.ToDecimal(sensorData.heat_index_out),
-                                RainfallMm = Convert.ToDecimal(sensorData.rainfall_mm),
-                                DegDaysCool = Convert.ToDecimal(sensorData.deg_days_cool),
-                                RainRateHiIn = Convert.ToDecimal(sensorData.rain_rate_hi_in),
-                                WindNumSamples = Convert.ToDecimal(sensorData.wind_num_samples),
-                                Emc = Convert.ToDecimal(sensorData.emc),
-                                RevType = Convert.ToDecimal(sensorData.rev_type),
-                                RainfallClicks = Convert.ToDecimal(sensorData.rainfall_clicks),
-                                AbsPress = Convert.ToDecimal(sensorData.abs_press),
-                                                            
-                            };
+                            MainClass mainClass = new MainClass();
+                            PROD_StationsData stationData = mainClass.SetStationData(sensorData, stationId);
                             context.PROD_StationsData.Add(stationData);
                             context.SaveChanges();
                            
                         }
                     }
-                    break; // aquí es donde se debe romper el ciclo while
-
-                    index++;
-
+                     // exit the while loop if a valid sensor has been found
+                    break;
 
                 }
-                
+
 
 
             }

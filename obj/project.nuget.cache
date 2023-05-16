@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LJB087vf6HCs4y6jumOVxy7BdgAVHmWZmYD+FEgFwfoWp+rbkyrtEY19pIbnqogYDuYixUqnvQob0YMgaf6z8A==",
+  "dgSpecHash": "xlr8R7EeltENXDLx392aPTOVIf+wIRoTIsTMQ8FmAXLOx86KYEVuNqaTbIQZeV0ncz21cD8v3nuJG2/K4IKvVA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\TestHello.csproj",
+  "projectFilePath": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\StationsDataAnalyzer.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\EToledo\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\EToledo\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",

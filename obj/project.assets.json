@@ -5538,9 +5538,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\TestHello.csproj",
-      "projectName": "TestHello",
-      "projectPath": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\TestHello.csproj",
+      "projectUniqueName": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\StationsDataAnalyzer.csproj",
+      "projectName": "StationsDataAnalyzer",
+      "projectPath": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\StationsDataAnalyzer.csproj",
       "packagesPath": "C:\\Users\\EToledo\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\EToledo\\source\\repos\\TestHello\\TestHello\\obj\\",
       "projectStyle": "PackageReference",
