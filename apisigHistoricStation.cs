@@ -30,61 +30,6 @@ using Microsoft.Extensions.Configuration;
 
 class MainClass
 {
-    public bool IsSensorValid(Sensor sensor)
-    {
-        // Verify if the current sensor has no data
-        if (sensor.data.Count == 0)
-        {
-            return false;
-        }
-
-        // Validar si todos los valores de SensorData en el sensor son NULL
-        bool allNull = true;
-        foreach (SensorData sensorData in sensor.data)
-        {
-            if (sensorData.iss_reception != null)
-            {
-                allNull = false;
-                break;
-            }
-        }
-
-        if (allNull)
-        {
-            return false;
-        }
-
-        // Validar si el sensor tiene 24 valores en la cuenta
-        if (sensor.data.Count != 24)
-        {
-            return false;
-        }
-
-        // Validar si todos los valores de SensorData en el sensor son 0
-        bool allZero = true;
-        foreach (SensorData sensorData in sensor.data)
-        {
-            if (sensorData.iss_reception != 0)
-            {
-                allZero = false;
-                break;
-            }
-        }
-
-        if (allZero)
-        {
-            return false;
-        }
-
-        return true;
-        /* To call this function from any part of the code, simply pass a Sensor object
-        / create an instance of MainClass
-        //MainClass mainClass = new MainClass();
-        / call IsSensorValid() function and pass a Sensor object
-        //bool isValid = mainClass.IsSensorValid(rootObject.sensors[index]);
-        */
-
-    }
 
     public PROD_StationsData SetStationData(SensorData sensorData, string stationId)
     {
@@ -232,13 +177,14 @@ class MainClass
                 //serializado del json
                 var welcome = Welcome.FromJson(jsonString);
                 var serialized = JsonConvert.SerializeObject(welcome, Formatting.Indented);
+                
                 //Console.WriteLine(serialized);
 
                 // Definimos la ruta y nombre del archivo
-                var rutaArchivo = @"C:\Users\EToledo\source\repos\TestHello\TestHello\dataweather.json";
+                //var rutaArchivo = @"C:\Users\EToledo\source\repos\TestHello\TestHello\dataweather.json";
 
                 // Escribimos el archivo JSON en la ruta especificada
-                File.WriteAllText(rutaArchivo, serialized);
+                //File.WriteAllText(rutaArchivo, serialized);
 
                 string json = jsonString;
                 RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(json);
